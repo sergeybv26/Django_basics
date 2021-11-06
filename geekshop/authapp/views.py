@@ -8,7 +8,10 @@ from django.urls import reverse
 def login(request):
     title = 'вход'
 
-    login_form = ShopUserLoginForm(data=request.POST)
+    login_form = ShopUserLoginForm(data=request.POST or None)
+
+    next_param = request.GET.get('next', '')
+
     if request.method == 'POST' and login_form.is_valid():
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -16,11 +19,15 @@ def login(request):
         user = auth.authenticate(username=username, password=password)
         if user and user.is_active:
             auth.login(request, user)
-            return HttpResponseRedirect(reverse('index'))
+            if 'next' in request.POST.keys():
+                return HttpResponseRedirect(request.POST['next'])
+            else:
+                return HttpResponseRedirect(reverse('index'))
 
     context = {
         'title': title,
-        'login_form': login_form
+        'login_form': login_form,
+        'next': next_param
     }
     return render(request, 'authapp/login.html', context)
 

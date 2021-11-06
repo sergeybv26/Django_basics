@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block menu %}
-<
+
 <div class="hero-white">
     <div class="header clearfix">
         {% include 'mainapp/includes/inc_main_menu.html' %}
@@ -26,7 +26,7 @@
 
             {% for product in products %}
             <div class="block">
-                <a href="{% url 'basket:add' product.pk %}">
+                <a href="{% url 'products:product' product.pk %}">
                     <img src="/media/{{ product.image }}" alt="product">
                     <div class="text">
                         <img src="{% static 'img/icon-hover.png' %}" alt="hover">
