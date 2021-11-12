@@ -11,6 +11,12 @@ from authapp.forms import ShopUserRegisterForm
 from adminapp.forms import ShopUserAdminEditForm, ProductCategoryEditForm, ProductEditForm
 
 
+class AccessMixin:
+    @method_decorator(user_passes_test(lambda u: u.is_superuser))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
 @user_passes_test(lambda u: u.is_superuser)
 def user_create(request):
     title = 'пользователи/создание'
@@ -42,13 +48,14 @@ def user_create(request):
 #     return render(request, 'adminapp/users.html', context)
 
 
-class UsersListView(ListView):
+class UsersListView(AccessMixin, ListView):
     model = ShopUser
     template_name = 'adminapp/users.html'
 
-    @method_decorator(user_passes_test(lambda u: u.is_superuser))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'админка/пользователи'
+        return context_data
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -191,11 +198,6 @@ def category_delete(request, pk):
 #
 #     return render(request, 'adminapp/product_update.html', context)
 
-class AccessMixin:
-    @method_decorator(user_passes_test(lambda u: u.is_superuser))
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
 
 class ProductCreateView(AccessMixin, CreateView):
     model = Product
@@ -207,6 +209,7 @@ class ProductCreateView(AccessMixin, CreateView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'продукт/создание'
         context_data['category'] = self.kwargs.get('pk')
         return context_data
 
@@ -232,6 +235,7 @@ class ProductsListView(AccessMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'админка/продукты'
         context_data['category'] = get_object_or_404(ProductCategory, pk=self.kwargs.get('pk'))
         return context_data
 
@@ -258,6 +262,7 @@ class ProductDetailView(AccessMixin, DetailView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'продукт/подробнее'
         context_data['category'] = self.kwargs.get('pk')
         return context_data
 
@@ -295,7 +300,9 @@ class ProductUpdateView(AccessMixin, UpdateView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
-        context_data['category'] = self.kwargs.get('pk')
+        _product = Product.objects.get(pk=self.kwargs['pk'])
+        context_data['title'] = 'продукт/редактирование'
+        context_data['category'] = _product.category_id
         return context_data
 
 
@@ -327,6 +334,11 @@ class ProductDeleteView(AccessMixin, DeleteView):
     def get_success_url(self):
         product_item = Product.objects.get(pk=self.kwargs['pk'])
         return reverse('adminapp:product_list', args=[product_item.category_id])
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'продукт/удаление'
+        return context_data
 
     def delete(self, *args, **kwargs):
         self.object = self.get_object()
