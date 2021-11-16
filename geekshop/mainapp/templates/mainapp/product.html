@@ -1,5 +1,6 @@
 {% extends 'mainapp/base.html' %}
 {% load static %}
+{% load my_tags %}
 
 {% block menu %}
 
@@ -19,23 +20,23 @@
     <div class="details-products">
         <div class="details-slider">
             <div class="slider-product">
-                <img src="/media/{{ product.image }}"
+                <img src="{{ product.image|media_for_products }}"
                      alt="{{ product.short_desc }}">
             </div>
             <div class="slider-control">
                 <div class="block">
                     <a href="#">
-                        <img src="/media/{{ product.image }}" alt="вариант 1">
+                        <img src="{{ product.image|media_for_products }}" alt="вариант 1">
                     </a>
                 </div>
                 <div class="block">
                     <a href="#">
-                        <img src="/media/{{ product.image }}" alt="вариант 2">
+                        <img src="{{ product.image|media_for_products }}" alt="вариант 2">
                     </a>
                 </div>
                 <div class="block">
                     <a href="#">
-                        <img src="/media/{{ product.image }}" alt="вариант 3">
+                        <img src="{{ product.image|media_for_products }}" alt="вариант 3">
                     </a>
                 </div>
             </div>
