@@ -4,6 +4,9 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
+from authapp.models import ShopUser
+from authapp.services import send_verify_mail
+
 
 def login(request):
     title = 'вход'
@@ -44,7 +47,8 @@ def register(request):
         register_form = ShopUserRegisterForm(request.POST, request.FILES)
 
         if register_form.is_valid():
-            register_form.save()
+            new_user = register_form.save()
+            send_verify_mail(new_user)
             return HttpResponseRedirect(reverse('auth:login'))
     else:
         register_form = ShopUserRegisterForm()
@@ -73,3 +77,13 @@ def edit(request):
     }
 
     return render(request, 'authapp/edit.html', context)
+
+
+def verify(request, email, key):
+    user = ShopUser.objects.filter(email=email).first()
+    if user:
+        if user.activation_key == key and not user.is_activation_key_expired():
+            user.activate_user()
+            auth.login(request, user)
+
+    return render(request, 'authapp/register_result.html')

@@ -2,15 +2,10 @@ import random
 
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+
 from mainapp.models import Product, ProductCategory
 from basketapp.models import Basket
-
-
-def get_basket(user):
-    if user.is_authenticated:
-        return Basket.objects.filter(user=user)
-    else:
-        return None
 
 
 def get_hot_product():
@@ -26,9 +21,39 @@ def main(request):
     context = {
         'title': 'Главная',
         'products': Product.objects.all()[:4],
-        'basket': get_basket(request.user)
     }
     return render(request, 'mainapp/index.html', context=context)
+
+
+class ProductsListView(ListView):
+    template_name = 'mainapp/products_list.html'
+    model = Product
+    paginate_by = 2
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_pk = self.kwargs.get('pk')
+
+        if category_pk != 0:
+            queryset = queryset.filter(category__pk=category_pk)
+
+        return queryset
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        category_pk = self.kwargs.get('pk')
+
+        if category_pk == 0:
+            context_data['category'] = {
+                'name': 'все',
+                'pk': 0
+            }
+        else:
+            context_data['category'] = ProductCategory.objects.get(pk=category_pk)
+        context_data['links_menu'] = ProductCategory.objects.filter(is_active=True)
+        context_data['title'] = 'Продукты'
+
+        return context_data
 
 
 def products(request, pk=None, page=1):
@@ -59,7 +84,6 @@ def products(request, pk=None, page=1):
             'category': category,
             'links_menu': links_menu,
             'title': title,
-            'basket': get_basket(request.user)
         }
 
         return render(request, 'mainapp/products_list.html', context=context)
@@ -72,7 +96,6 @@ def products(request, pk=None, page=1):
         'title': title,
         'hot_product': hot_product,
         'same_products': same_products,
-        'basket': get_basket(request.user)
     }
 
     return render(request, 'mainapp/products.html', context=context)
@@ -81,7 +104,6 @@ def products(request, pk=None, page=1):
 def contact(request):
     context = {
         'title': 'Контакты',
-        'basket': get_basket(request.user)
     }
     return render(request, 'mainapp/contact.html', context=context)
 
@@ -93,7 +115,6 @@ def product(request, pk):
         'title': title,
         'links_menu': ProductCategory.objects.all(),
         'product': get_object_or_404(Product, pk=pk),
-        'basket': get_basket(request.user),
     }
 
     return render(request, 'mainapp/product.html', context)
