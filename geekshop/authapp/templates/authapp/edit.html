@@ -7,6 +7,7 @@
     <form class="form-horizontal" action="{% url 'auth:edit' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ edit_form.as_p }}
+        {{ profile_form.as_p }}
         <input class="form-control" type="submit" value="сохранить">
     </form>
     <button class="btn btn-round form-control last">
@@ -14,5 +15,12 @@
             на главную
         </a>
     </button>
-    <div class="user_avatar"><img src="{{ user.avatar|media_for_users }}"></div>
+    <div class="user_avatar"><img src="
+    {% if 'http' in user.avatar %}
+
+        {{ user.avatar }}
+    {% else %}
+        {{ user.avatar|media_for_users }}
+    {% endif %}">
+    </div>
 {% endblock %}
