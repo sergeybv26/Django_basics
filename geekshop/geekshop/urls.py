@@ -28,6 +28,7 @@ urlpatterns = [
     path('basket/', include('basketapp.urls', namespace='basket')),
     path('contact/', mainapp.contact, name='contact'),
     path('admin/', include('adminapp.urls', namespace='adminapp')),
+    path('order/', include('ordersapp.urls', namespace='order')),
 
     # path('admin/', admin.site.urls, name='admin'),
 
