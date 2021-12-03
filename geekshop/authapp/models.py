@@ -11,6 +11,7 @@ from django.utils.timezone import now
 
 class ShopUser(AbstractUser):
     avatar = models.ImageField(upload_to='users_avatars', blank=True, verbose_name='Аватарка')
+    avatar_url = models.CharField(max_length=512, blank=True, null=True, verbose_name='Ссылка на аватарку')
     age = models.PositiveIntegerField(verbose_name='возраст', default=18)
 
     activation_key = models.CharField(max_length=128, verbose_name='ключ активации', blank=True, null=True)
