@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'template_profiler_panel',
+    'django_extensions',
     'social_django',
     'basketapp',
     'authapp',
