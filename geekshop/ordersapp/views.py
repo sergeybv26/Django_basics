@@ -125,12 +125,13 @@ def order_forming_complete(request, pk):
     return HttpResponseRedirect(reverse('ordersapp:list'))
 
 
-def order_added_product(request, pk_ord, pk):
+def order_added_product(request, pk):
     if request.is_ajax():
-        _product = get_object_or_404(Product, pk=pk)
-        _price = _product.price
-        print('ajax')
-        return JsonResponse({'result': _price})
+        _product = Product.objects.filter(pk=pk).first()
+        if _product:
+            return JsonResponse({'price': _product.price})
+        else:
+            return JsonResponse({'price': 0})
 
 
 @receiver(pre_save, sender=OrderItem)
