@@ -10,7 +10,7 @@ from basketapp.models import Basket
 @login_required
 def basket(request):
     title = 'корзина'
-    basket_items = Basket.objects.filter(user=request.user)
+    basket_items = Basket.objects.filter(user=request.user).select_related('product')
 
     context = {
         'title': title,
@@ -57,7 +57,7 @@ def edit(request, pk, quantity):
         else:
             new_basket_item.delete()
 
-        basket_items = Basket.objects.filter(user=request.user)
+        basket_items = Basket.objects.filter(user=request.user).select_related('product')
 
         context = {
             'basket_items': basket_items,
