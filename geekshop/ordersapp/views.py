@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models.signals import pre_save, pre_delete
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy, reverse
+from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.dispatch import receiver
 
@@ -13,7 +15,13 @@ from ordersapp.forms import OrderItemForm
 from ordersapp.models import Order, OrderItem
 
 
-class OrderListView(ListView):
+class AccessMixin:
+    @method_decorator(login_required())
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
+class OrderListView(AccessMixin, ListView):
     model = Order
 
     def get_queryset(self):
@@ -66,7 +74,7 @@ class OrderCreateView(CreateView):
         return super().form_valid(form)
 
 
-class OrderUpdateView(UpdateView):
+class OrderUpdateView(AccessMixin, UpdateView):
     model = Order
     fields = []
     success_url = reverse_lazy('order:list')
