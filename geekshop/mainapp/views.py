@@ -1,5 +1,7 @@
 import random
 
+from django.conf import settings
+from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
@@ -8,8 +10,84 @@ from mainapp.models import Product, ProductCategory
 from basketapp.models import Basket
 
 
+def get_links_menu():
+    if settings.LOW_CACHE:
+        key = 'links_menu'
+        links_menu = cache.get(key)
+        if links_menu is None:
+            links_menu = ProductCategory.objects.filter(is_active=True)
+            cache.set(key, links_menu)
+        return links_menu
+    else:
+        return ProductCategory.objects.filter(is_active=True)
+
+
+def get_category(pk):
+    if settings.LOW_CACHE:
+        key = f'category_{pk}'
+        category = cache.get(key)
+        if category is None:
+            category = get_object_or_404(ProductCategory, pk=pk)
+            cache.set(key, category)
+        return category
+    else:
+        return get_object_or_404(ProductCategory, pk=pk)
+
+
+def get_products():
+    if settings.LOW_CACHE:
+        key = 'products'
+        _products = cache.get(key)
+        if _products is None:
+            _products = Product.objects.filter(is_active=True, category__is_active=True).select_related('category')
+            cache.set(key, _products)
+        return _products
+    else:
+        return Product.objects.filter(is_active=True, category__is_active=True).select_related('category')
+
+
+def get_product(pk):
+    if settings.LOW_CACHE:
+        key = f'product_{pk}'
+        _product = cache.get(key)
+        if _product is None:
+            _product = get_object_or_404(Product, pk=pk)
+            cache.set(key, _product)
+        return _product
+    else:
+        return get_object_or_404(Product, pk=pk)
+
+
+def get_products_ordered_by_price():
+    if settings.LOW_CACHE:
+        key = 'products_ordered_by_price'
+        _products = cache.get(key)
+        if _products is None:
+            _products = Product.objects.filter(is_active=True, category__is_active=True).\
+                select_related().order_by('price')
+            cache.set(key, _products)
+        return _products
+    else:
+        return Product.objects.filter(is_active=True, category__is_active=True).\
+                select_related().order_by('price')
+
+
+def get_products_in_category_ordered_by_price(pk):
+    if settings.LOW_CACHE:
+        key = f'products_in_category_ordered_by_price_{pk}'
+        _products = cache.get(key)
+        if _products is None:
+            _products = Product.objects.filter(category__pk=pk, is_active=True, category__is_active=True).\
+                select_related().order_by('price')
+            cache.set(key, _products)
+        return _products
+    else:
+        return Product.objects.filter(category__pk=pk, is_active=True, category__is_active=True).\
+                select_related().order_by('price')
+
+
 def get_hot_product():
-    return random.sample(list(Product.objects.all()), 1)[0]
+    return random.sample(list(get_products()), 1)[0]
 
 
 def get_same_products(hot_product):
@@ -21,7 +99,7 @@ def get_same_products(hot_product):
 def main(request):
     context = {
         'title': 'Главная',
-        'products': Product.objects.all().select_related()[:4],
+        'products': get_products()[:4],
     }
     return render(request, 'mainapp/index.html', context=context)
 
@@ -50,8 +128,9 @@ class ProductsListView(ListView):
                 'pk': 0
             }
         else:
-            context_data['category'] = ProductCategory.objects.get(pk=category_pk)
-        context_data['links_menu'] = ProductCategory.objects.filter(is_active=True)
+            context_data['category'] = get_category(category_pk)
+
+        context_data['links_menu'] = get_links_menu()
         context_data['title'] = 'Продукты'
 
         return context_data
@@ -59,21 +138,18 @@ class ProductsListView(ListView):
 
 def products(request, pk=None, page=1):
     title = 'Продукты'
-    links_menu = ProductCategory.objects.filter(is_active=True)
+    links_menu = get_links_menu()
 
     if pk is not None:
         if pk == 0:
-            products_list = Product.objects.filter(is_active=True, category__is_active=True).\
-                select_related().order_by('price')
+            products_list = get_products_ordered_by_price()
             category = {
                 'name': 'все',
                 'pk': 0
             }
         else:
-            category = get_object_or_404(ProductCategory, pk=pk)
-            products_list = Product.objects.filter(category__pk=pk,
-                                                   is_active=True, category__is_active=True).\
-                select_related().order_by('price')
+            category = get_category(pk)
+            products_list = get_products_in_category_ordered_by_price(pk)
 
         paginator = Paginator(products_list, 2)
         try:
@@ -116,8 +192,8 @@ def product(request, pk):
 
     context = {
         'title': title,
-        'links_menu': ProductCategory.objects.all(),
-        'product': get_object_or_404(Product, pk=pk),
+        'links_menu': get_links_menu(),
+        'product': get_product(pk),
     }
 
     return render(request, 'mainapp/product.html', context)
