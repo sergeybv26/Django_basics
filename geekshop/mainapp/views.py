@@ -140,9 +140,12 @@ class ProductsListView(ListView):
 
 
 def products_ajax(request, pk=None, page=1):
+    print('controller ajax1')
     if request.is_ajax():
+        print('controller ajax')
         links_menu = get_links_menu()
         if pk is not None:
+            print(f'pk={pk}')
             if pk == 0:
                 products_list = get_products_ordered_by_price()
                 category = {
@@ -154,6 +157,7 @@ def products_ajax(request, pk=None, page=1):
                 products_list = get_products_in_category_ordered_by_price(pk)
 
             paginator = Paginator(products_list, 2)
+            print(products_list)
             try:
                 products_paginator = paginator.page(page)
             except PageNotAnInteger:
@@ -173,9 +177,38 @@ def products_ajax(request, pk=None, page=1):
             return JsonResponse({'result': result})
 
 
-def products(request):
+def products(request, pk=None, page=1):
     title = 'Продукты'
     links_menu = get_links_menu()
+    print('controller products')
+    if pk is not None:
+        if pk == 0:
+            products_list = get_products_ordered_by_price()
+            category = {
+                'name': 'все',
+                'pk': 0
+            }
+        else:
+            category = get_object_or_404(ProductCategory, pk=pk)
+            products_list = get_products_in_category_ordered_by_price(pk)
+
+        paginator = Paginator(products_list, 2)
+        print(products_list)
+        try:
+            products_paginator = paginator.page(page)
+        except PageNotAnInteger:
+            products_paginator = paginator.page(1)
+        except EmptyPage:
+            products_paginator = paginator.page(paginator.num_pages)
+        context = {
+            'products': products_paginator,
+            'category': category,
+            'links_menu': links_menu,
+            'title': title,
+        }
+
+        return render(request, 'mainapp/products_list.html', context=context)
+
     hot_product = get_hot_product()
     same_products = get_same_products(hot_product)
 
@@ -187,6 +220,22 @@ def products(request):
     }
 
     return render(request, 'mainapp/products.html', context=context)
+
+
+# def products(request):
+#     title = 'Продукты'
+#     links_menu = get_links_menu()
+#     hot_product = get_hot_product()
+#     same_products = get_same_products(hot_product)
+#
+#     context = {
+#         'links_menu': links_menu,
+#         'title': title,
+#         'hot_product': hot_product,
+#         'same_products': same_products,
+#     }
+#
+#     return render(request, 'mainapp/products.html', context=context)
 
 
 def contact(request):
