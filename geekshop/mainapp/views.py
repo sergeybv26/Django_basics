@@ -169,45 +169,46 @@ def products_ajax(request, pk=None, page=1):
                 'category': category,
                 'links_menu': links_menu,
             }
-
+            print(f'paginator: {products_paginator}')
+            print(f'object_list: {products_paginator.object_list}')
             result = render_to_string('mainapp/includes/inc_products_list_content.html',
                                       context=context,
                                       request=request)
-
+            print(result)
             return JsonResponse({'result': result})
 
 
 def products(request, pk=None, page=1):
     title = 'Продукты'
     links_menu = get_links_menu()
-    print('controller products')
-    if pk is not None:
-        if pk == 0:
-            products_list = get_products_ordered_by_price()
-            category = {
-                'name': 'все',
-                'pk': 0
-            }
-        else:
-            category = get_object_or_404(ProductCategory, pk=pk)
-            products_list = get_products_in_category_ordered_by_price(pk)
-
-        paginator = Paginator(products_list, 2)
-        print(products_list)
-        try:
-            products_paginator = paginator.page(page)
-        except PageNotAnInteger:
-            products_paginator = paginator.page(1)
-        except EmptyPage:
-            products_paginator = paginator.page(paginator.num_pages)
-        context = {
-            'products': products_paginator,
-            'category': category,
-            'links_menu': links_menu,
-            'title': title,
-        }
-
-        return render(request, 'mainapp/products_list.html', context=context)
+    # print('controller products')
+    # if pk is not None:
+    #     if pk == 0:
+    #         products_list = get_products_ordered_by_price()
+    #         category = {
+    #             'name': 'все',
+    #             'pk': 0
+    #         }
+    #     else:
+    #         category = get_object_or_404(ProductCategory, pk=pk)
+    #         products_list = get_products_in_category_ordered_by_price(pk)
+    #
+    #     paginator = Paginator(products_list, 2)
+    #     print(products_list)
+    #     try:
+    #         products_paginator = paginator.page(page)
+    #     except PageNotAnInteger:
+    #         products_paginator = paginator.page(1)
+    #     except EmptyPage:
+    #         products_paginator = paginator.page(paginator.num_pages)
+    #     context = {
+    #         'products': products_paginator,
+    #         'category': category,
+    #         'links_menu': links_menu,
+    #         'title': title,
+    #     }
+    #
+    #     return render(request, 'mainapp/products_list.html', context=context)
 
     hot_product = get_hot_product()
     same_products = get_same_products(hot_product)

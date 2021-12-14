@@ -7,9 +7,9 @@ app_name = 'mainapp'
 
 urlpatterns = [
     path('', mainapp.products, name='products'),
-    path('category/<int:pk>/', mainapp.products, name='category'),
-    path('category/<int:pk>/ajax/', mainapp.products_ajax),
-    path('category/<int:pk>/page/<int:page>/ajax/', mainapp.products_ajax),
-    path('category/<int:pk>/page/<int:page>/', mainapp.products, name='page'),
+    path('category/<int:pk>/', mainapp.ProductsListView.as_view(), name='category'),
+    # path('category/<int:pk>/ajax/', mainapp.products_ajax),
+    # path('category/<int:pk>/page/<int:page>/ajax/', mainapp.products_ajax),
+    # path('category/<int:pk>/page/<int:page>/', mainapp.products, name='page'),
     path('product/<int:pk>/', mainapp.product, name='product'),
 ]
