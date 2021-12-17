@@ -2,7 +2,7 @@ import random
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
@@ -90,7 +90,11 @@ def get_products_in_category_ordered_by_price(pk):
 
 
 def get_hot_product():
-    return random.sample(list(get_products()), 1)[0]
+    try:
+        _hot_product = random.sample(list(get_products()), 1)[0]
+    except ValueError:
+        raise Http404('Отсутствуют продукты в базе данных')
+    return _hot_product
 
 
 def get_same_products(hot_product):
