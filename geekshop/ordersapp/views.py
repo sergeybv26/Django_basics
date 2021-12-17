@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.dispatch import receiver
 
+from adminapp.views import report_update
 from basketapp.models import Basket
 from mainapp.models import Product
 from ordersapp.forms import OrderItemForm
@@ -131,6 +132,8 @@ def order_forming_complete(request, pk):
     order = get_object_or_404(Order, pk=pk)
     order.status = Order.STATUS_SENT_TO_PROCEED
     order.save()
+
+    report_update(order)
 
     return HttpResponseRedirect(reverse('ordersapp:list'))
 

@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
+from authapp.models import ShopUserFavourite
 from mainapp.models import Product, ProductCategory
 from basketapp.models import Basket
 
@@ -260,3 +261,9 @@ def product(request, pk):
     }
 
     return render(request, 'mainapp/product.html', context)
+
+
+def add_to_favourite(request, pk):
+    _favourite_item = ShopUserFavourite.objects.filter(user=request.user, product__pk=pk)
+    if not _favourite_item:
+        _favourite_item = ShopUserFavourite(user=request.user, product=get_product(pk))

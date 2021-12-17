@@ -8,6 +8,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 
+from mainapp.models import Product
+
 
 class ShopUser(AbstractUser):
     avatar = models.ImageField(upload_to='users_avatars', blank=True, verbose_name='Аватарка')
@@ -54,3 +56,8 @@ class ShopUserProfile(models.Model):
     @receiver(post_save, sender=ShopUser)
     def update_user_profile(sender, instance, **kwargs):
         instance.shopuserprofile.save()
+
+
+class ShopUserFavourite(models.Model):
+    user = models.ForeignKey(ShopUser, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)

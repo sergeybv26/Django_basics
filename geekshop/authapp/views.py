@@ -1,12 +1,22 @@
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView
+
 from authapp.forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm, ShopUserProfileEditForm
 from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from authapp.models import ShopUser
+from authapp.models import ShopUser, ShopUserFavourite
 from authapp.services import send_verify_mail
+
+
+class AccessMixin:
+    @method_decorator(login_required())
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 def login(request):
@@ -92,3 +102,13 @@ def verify(request, email, key):
             auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
     return render(request, 'authapp/register_result.html')
+
+
+class FavouriteListView(AccessMixin, ListView):
+    model = ShopUserFavourite
+    template_name = 'authapp/favourite.html'
+
+    def get_queryset(self):
+        return ShopUserFavourite.objects.all().select_related()
+
+
