@@ -264,6 +264,11 @@ def product(request, pk):
 
 
 def add_to_favourite(request, pk):
-    _favourite_item = ShopUserFavourite.objects.filter(user=request.user, product__pk=pk)
-    if not _favourite_item:
-        _favourite_item = ShopUserFavourite(user=request.user, product=get_product(pk))
+    if request.is_ajax():
+        _favourite_item = ShopUserFavourite.objects.filter(user=request.user, product__pk=pk).first()
+
+        if not _favourite_item:
+            _favourite_item = ShopUserFavourite(user=request.user, product=get_product(pk))
+            _favourite_item.save()
+
+        return JsonResponse({'result': 'удалить из избранного'})
