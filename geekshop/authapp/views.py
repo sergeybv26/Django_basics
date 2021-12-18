@@ -2,12 +2,12 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 
 from authapp.forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm, ShopUserProfileEditForm
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from authapp.models import ShopUser, ShopUserFavourite
 from authapp.services import send_verify_mail
@@ -110,5 +110,10 @@ class FavouriteListView(AccessMixin, ListView):
 
     def get_queryset(self):
         return ShopUserFavourite.objects.all().select_related()
+
+
+class FavouriteDeleteView(AccessMixin, DeleteView):
+    model = ShopUserFavourite
+    success_url = reverse_lazy('authapp:favourite')
 
 

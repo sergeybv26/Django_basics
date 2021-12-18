@@ -6,7 +6,7 @@
 <div class="h2 text-center head">
     Избранные товары
 </div>
-<div class="products_list">
+<div class="products_list_fav">
     {% for object in object_list %}
         {% if object.product.is_active %}
     <div class="product_record">
@@ -27,7 +27,12 @@
         </div>
 
     </div>
-        {% endif %}"
+        {% endif %}
+    <button class="btn btn-round form-control last">
+        <a href="{% url 'authapp:favourite_delete' object.pk %}" class="">
+            удалить из избранного
+        </a>
+    </button>
     {% endfor%}
 </div>
 <button class="btn btn-round form-control last">

@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from mainapp.models import Product
 from basketapp.models import Basket
 from adminapp.views import db_profile_by_type
+from mainapp.views import get_usd
 
 
 @login_required
@@ -17,7 +18,7 @@ def basket(request):
 
     context = {
         'title': title,
-        'basket_items': basket_items
+        'basket_items': basket_items,
     }
 
     return render(request, 'basketapp/basket.html', context)

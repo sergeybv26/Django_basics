@@ -1,17 +1,68 @@
+import os
 import random
+from datetime import date
+from urllib import request
+from xml.dom import minidom
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
 from authapp.models import ShopUserFavourite
-from mainapp.models import Product, ProductCategory
+from mainapp.models import Product, ProductCategory, ExchangeRate
 from basketapp.models import Basket
+
+
+def get_exchange_rate():
+    rate = ExchangeRate.objects.filter(rate_update_at=date.today()).first()
+
+    if not rate:
+        url = 'http://www.cbr.ru/scripts/XML_daily.asp'
+        web_xml = request.urlopen(url)
+        xml_data = web_xml.read()
+
+        filename = os.path.join(settings.BASE_DIR, 'tmp') + '/exchange.xml'
+        with open(filename, 'wb') as local_xml:
+            local_xml.write(xml_data)
+            local_xml.close()
+
+        xml = minidom.parse(filename)
+        currency = xml.getElementsByTagName('Valute')
+        for element in currency:
+            charcode = element.getElementsByTagName('CharCode')[0].firstChild.data
+            if charcode == 'USD':
+                value = float(element.getElementsByTagName('Value')[0].firstChild.data.replace(',', '.'))
+                rate = ExchangeRate(rate=value)
+                rate.save()
+                break
+
+    return rate
+
+
+def get_usd():
+    if settings.LOW_CACHE:
+        key = 'usd_exchange'
+        usd_exchange = cache.get(key)
+        if usd_exchange is None:
+            usd_exchange = get_exchange_rate().rate
+            cache.set(key, usd_exchange)
+        return usd_exchange
+    else:
+        return get_exchange_rate().rate
+
+
+def get_price_usd(product_price):
+    return product_price / get_usd()
+
+
+def get_favourite(user, pk):
+    return ShopUserFavourite.objects.filter(user=user, product__pk=pk).first()
 
 
 def get_links_menu():
@@ -105,9 +156,11 @@ def get_same_products(hot_product):
 
 
 def main(request):
+
     context = {
         'title': 'Главная',
         'products': get_products()[:4],
+        'exchange_rate': get_usd()
     }
     return render(request, 'mainapp/index.html', context=context)
 
@@ -140,6 +193,7 @@ class ProductsListView(ListView):
 
         context_data['links_menu'] = get_links_menu()
         context_data['title'] = 'Продукты'
+        context_data['exchange_rate'] = get_usd()
 
         return context_data
 
@@ -223,52 +277,41 @@ def products(request, pk=None, page=1):
         'title': title,
         'hot_product': hot_product,
         'same_products': same_products,
+        'exchange_rate': get_usd(),
+        'price_usd': get_price_usd(hot_product.price),
     }
 
     return render(request, 'mainapp/products.html', context=context)
 
 
-# def products(request):
-#     title = 'Продукты'
-#     links_menu = get_links_menu()
-#     hot_product = get_hot_product()
-#     same_products = get_same_products(hot_product)
-#
-#     context = {
-#         'links_menu': links_menu,
-#         'title': title,
-#         'hot_product': hot_product,
-#         'same_products': same_products,
-#     }
-#
-#     return render(request, 'mainapp/products.html', context=context)
-
-
 def contact(request):
     context = {
         'title': 'Контакты',
+        'exchange_rate': get_usd(),
     }
     return render(request, 'mainapp/contact.html', context=context)
 
 
 def product(request, pk):
     title = 'продукты'
-
+    _product = get_product(pk)
     context = {
         'title': title,
         'links_menu': get_links_menu(),
-        'product': get_product(pk),
+        'product': _product,
+        'favourite': get_favourite(request.user, pk),
+        'exchange_rate': get_usd(),
+        'price_usd': get_price_usd(_product.price)
     }
 
     return render(request, 'mainapp/product.html', context)
 
 
 def add_to_favourite(request, pk):
-    if request.is_ajax():
-        _favourite_item = ShopUserFavourite.objects.filter(user=request.user, product__pk=pk).first()
+    _favourite_item = get_favourite(request.user, pk)
 
-        if not _favourite_item:
-            _favourite_item = ShopUserFavourite(user=request.user, product=get_product(pk))
-            _favourite_item.save()
+    if not _favourite_item:
+        _favourite_item = ShopUserFavourite(user=request.user, product=get_product(pk))
+        _favourite_item.save()
 
-        return JsonResponse({'result': 'удалить из избранного'})
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

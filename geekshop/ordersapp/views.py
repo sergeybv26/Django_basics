@@ -13,6 +13,7 @@ from django.dispatch import receiver
 from adminapp.views import report_update
 from basketapp.models import Basket
 from mainapp.models import Product
+from mainapp.views import get_usd
 from ordersapp.forms import OrderItemForm
 from ordersapp.models import Order, OrderItem
 
@@ -50,11 +51,13 @@ class OrderCreateView(CreateView):
                     form.initial['product'] = basket_items[num].product
                     form.initial['quantity'] = basket_items[num].quantity
                     form.initial['price'] = basket_items[num].product.price
+                    form.initial['price_usd'] = basket_items[num].product.price / get_usd()
 
             else:
                 formset = OrderFormSet()
 
         context_data['orderitems'] = formset
+        context_data['exchange_rate'] = get_usd()
 
         return context_data
 
@@ -93,8 +96,10 @@ class OrderUpdateView(AccessMixin, UpdateView):
             for form in formset.forms:
                 if form.instance.pk:
                     form.initial['price'] = form.instance.product.price
+                    form.initial['price_usd'] = form.instance.product.price / get_usd()
 
         context_data['orderitems'] = formset
+        context_data['exchange_rate'] = get_usd()
 
         return context_data
 

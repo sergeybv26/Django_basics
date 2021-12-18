@@ -99,6 +99,10 @@ html, body {
     margin-left: 250px;
 }
 
+.products_list_fav {
+    margin-left: 10px;
+}
+
 .products_list .new_product {
     margin-left: 150px;
 }
@@ -575,7 +579,7 @@ html, body {
     border-radius: 25px;
     overflow: hidden;
     width: 28em;
-    min-width: 500px;
+    min-width: 800px;
     margin: 100px auto;
        
     position: relative;
