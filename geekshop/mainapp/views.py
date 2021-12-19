@@ -1,3 +1,4 @@
+import json
 import os
 import random
 from datetime import date
@@ -6,7 +7,7 @@ from xml.dom import minidom
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse, Http404, HttpResponseRedirect
+from django.http import JsonResponse, Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
@@ -315,3 +316,26 @@ def add_to_favourite(request, pk):
         _favourite_item.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+def product_upload(request):
+    __token = 'e5e0321f-8b43-41ac-b31f-62db701b3519'
+    if request.method == 'POST':
+        if request.headers.get('Authorization') == __token:
+
+            filename = os.path.join(settings.BASE_DIR, 'tmp') + '/product.json'
+            data = request.body.decode('utf-8')
+            with open(filename, 'w', encoding='utf-8') as local_json:
+                local_json.write(data)
+                local_json.close()
+            with open(filename, 'r', encoding='utf-8') as json_file:
+                json_data = json.load(json_file)
+                json_file.close()
+
+            for _product in json_data:
+                category_name = _product['category']
+                _category = ProductCategory.objects.get(name=category_name)
+                _product['category'] = _category
+                Product.objects.create(**_product)
+            return HttpResponse('Данные загружены')
+    raise Http404()
