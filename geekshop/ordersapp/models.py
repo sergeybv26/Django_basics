@@ -88,6 +88,6 @@ class OrderItem(models.Model):
 
 class Payment(models.Model):
     user = models.ForeignKey(ShopUser, on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, unique=True, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
     ik_am = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма платежа')
     ik_desc = models.CharField(max_length=128, verbose_name='Описание платежа')

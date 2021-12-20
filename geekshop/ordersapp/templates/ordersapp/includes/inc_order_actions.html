@@ -10,7 +10,7 @@
 {% endif %}
 {% if object.status == 'STP' %}
     <form name="payment" method="post" action="https://sci.interkassa.com/" accept-charset="UTF-8">
-        <input type="hidden" name="ic_co_id" value="{{ ik_co_id }}"/>
+        <input type="hidden" name="ik_co_id" value="{{ ik_co_id }}"/>
         <input type="hidden" name="ik_pm_no" value="{{ object.pk }}"/>
         <input type="hidden" name="ik_am" value="{{ object.get_total_cost }}"/>
         <input type="hidden" name="ik_desc" value="оплата по заказу №{{object.pk}}"/>
