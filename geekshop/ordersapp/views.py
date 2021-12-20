@@ -174,4 +174,11 @@ def product_quantity_update_delete(sender, instance, **kwargs):
 
 @csrf_exempt
 def order_paid(request):
-    return HttpResponse("success")
+    order_id = int(request.POST.get('ik_pm_no'))
+    order_status = request.POST.get('ik_inv_st')
+    if order_status == 'success':
+        order = get_object_or_404(Order, pk=order_id)
+        order.status = Order.STATUS_PAID
+        order.save()
+        return HttpResponseRedirect(reverse('ordersapp:list'))
+    return HttpResponse(f"Заказ №{order_id} - ошибка оплаты")
