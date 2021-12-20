@@ -13,6 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
 from authapp.models import ShopUserFavourite
@@ -318,11 +319,10 @@ def add_to_favourite(request, pk):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
+@csrf_exempt
 def product_upload(request):
-    __token = 'e5e0321f-8b43-41ac-b31f-62db701b3519'
     if request.method == 'POST':
-        if request.headers.get('Authorization') == __token:
-
+        if request.headers.get('Authorization') == settings.UPLOAD_TOKEN:
             filename = os.path.join(settings.BASE_DIR, 'tmp') + '/product.json'
             data = request.body.decode('utf-8')
             with open(filename, 'w', encoding='utf-8') as local_json:

@@ -1,12 +1,14 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
 from django.db.models.signals import pre_save, pre_delete
 from django.forms import inlineformset_factory
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.dispatch import receiver
 
@@ -130,6 +132,7 @@ class OrderDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         context_data['title'] = 'заказ/просмотр'
+        context_data['ik_co_id'] = settings.INTERCASSA_ID
         return context_data
 
 
@@ -167,3 +170,8 @@ def product_quantity_update_save(sender, instance, **kwargs):
 def product_quantity_update_delete(sender, instance, **kwargs):
     instance.product.quantity = F('quantity') + instance.quantity
     instance.product.save()
+
+
+@csrf_exempt
+def order_paid(request):
+    return HttpResponse("success")

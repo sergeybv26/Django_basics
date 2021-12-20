@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -245,3 +245,7 @@ if os.name == 'posix':
     }
 
 LOW_CACHE = (os.getenv('LOW_CACHE', 'False') == 'True')
+
+UPLOAD_TOKEN = 'e5e0321f-8b43-41ac-b31f-62db701b3519'
+
+INTERCASSA_ID = '61bdd4bfedb6971dd62ca2a6'
