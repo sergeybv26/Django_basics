@@ -1,0 +1,9 @@
+{% if not favourite %}
+    <a href="{% url 'products:favourite_add' product.pk %}" class="red-button" id="favourite_button" name="favourite-{{ product.pk }}">
+        добавить в избранное
+    </a>
+{% else %}
+    <a href="{% url 'authapp:favourite_delete' favourite.pk %}" class="red-button" id="favourite_button" name="favourite-{{ product.pk }}">
+       удалить из избранного
+    </a>
+{% endif %}

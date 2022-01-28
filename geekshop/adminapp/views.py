@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
+from adminapp.models import Report
 from mainapp.models import Product, ProductCategory
 from authapp.models import ShopUser
 from authapp.forms import ShopUserRegisterForm
@@ -390,3 +391,29 @@ def product_is_active_update_productcategory_save(sender, instance, **kwargs):
             instance.product_set.update(is_active=False)
 
         db_profile_by_type(sender, 'UPDATE', connection.queries)
+
+
+def report_update(order):
+    _order_items = order.get_order_items()
+    for _item in _order_items:
+        _report_item = Report.objects.filter(product=_item.product).first()
+        if _report_item:
+            _report_item.quantity = F('quantity') + 1
+        else:
+            _report_item = Report(product=_item.product)
+            _report_item.quantity += 1
+
+        _report_item.save()
+
+
+class ReportsListView(ListView):
+    model = Report
+    template_name = 'adminapp/reports.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'админка/отчет по продажам'
+        return context_data
+
+    def get_queryset(self):
+        return Report.objects.all().select_related()

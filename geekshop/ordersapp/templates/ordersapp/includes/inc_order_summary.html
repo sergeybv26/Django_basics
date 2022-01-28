@@ -1,5 +1,6 @@
 {% if object %}
    <div class="h2">Заказ №{{ object.pk }} от {{ object.created_at|date:"Y-m-d H:i:s" }}</div>
+    <p>Курс доллара: <span class="exchange_rate">{{ exchange_rate }}</span> руб.</p>
    <hr>
    <div class="h4">заказчик: {{ user.last_name }} {{ user.first_name }} </div>
    <div class="h4">обновлен: {{ object.updated_at|date:"Y-m-d H:i:s" }}</div>
