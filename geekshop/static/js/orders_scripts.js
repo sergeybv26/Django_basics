@@ -1,5 +1,5 @@
 window.onload = function () {
-    var _quantity, _price, orderitem_num, delta_quantity, orderitem_quantity, delta_cost;
+    var _quantity, _price, orderitem_num, delta_quantity, orderitem_quantity, delta_cost, exchange_rate;
     var quantity_arr = [];
     var price_arr = [];
 
@@ -7,6 +7,7 @@ window.onload = function () {
 
     var order_total_quantity = parseInt($('.order_total_quantity').text()) || 0;
     var order_total_cost = parseFloat($('.order_total_cost').text().replace(',', '.')) || 0;
+    exchange_rate = parseFloat($('.exchange_rate').text()) || 1;
 
     for (var i=0; i < total_forms; i++) {
        _quantity = parseInt($('input[name="orderitems-' + i + '-quantity"]').val());
@@ -59,7 +60,7 @@ window.onload = function () {
                         if (isNaN(quantity_arr[orderitem_num])) {
                             quantity_arr[orderitem_num] = 0;
                         }
-                        var price_html = '<span>' + data.price.toString().replace('.', ',') + '</span> руб';
+                        var price_html = '<span>' + data.price.toString().replace('.', ',') + '</span>';
                         var current_tr = $('.order_form table').find('tr:eq(' + (orderitem_num + 1) + ')');
                         current_tr.find('td:eq(2)').html(price_html);
 

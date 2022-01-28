@@ -17,7 +17,8 @@ class OrderForm(forms.ModelForm):
 
 
 class OrderItemForm(forms.ModelForm):
-    price = forms.CharField(label='цена', required=False)
+    price = forms.CharField(label='цена в руб.', required=False)
+    price_usd = forms.CharField(label='цена в USD', required=False)
 
     class Meta:
         model = OrderItem
@@ -30,4 +31,4 @@ class OrderItemForm(forms.ModelForm):
             field.widget.attrs['class'] = 'form-control'
             field.help_text = ''
 
-        self.fields['product'].queryset = Product.get_items()
+        self.fields['product'].queryset = Product.get_items().select_related()

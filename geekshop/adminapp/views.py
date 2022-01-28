@@ -1,3 +1,7 @@
+from django.db import connection
+from django.db.models import F
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, get_object_or_404
@@ -5,6 +9,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
 
+from adminapp.models import Report
 from mainapp.models import Product, ProductCategory
 from authapp.models import ShopUser
 from authapp.forms import ShopUserRegisterForm
@@ -134,26 +139,46 @@ def categories(request):
     return render(request, 'adminapp/categories.html', context)
 
 
-@user_passes_test(lambda u: u.is_superuser)
-def category_update(request, pk):
-    title = 'категории/редактирование'
-    edit_category = get_object_or_404(ProductCategory, pk=pk)
+class ProductCategoryUpdateView(AccessMixin, UpdateView):
+    model = ProductCategory
+    template_name = 'adminapp/category_update.html'
+    success_url = reverse_lazy('adminapp:category_list')
+    form_class = ProductCategoryEditForm
 
-    if request.method == 'POST':
-        edit_form = ProductCategoryEditForm(request.POST, request.FILES, instance=edit_category)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'категории/редактирование'
+        return context
 
-        if edit_form.is_valid():
-            edit_form.save()
-            return HttpResponseRedirect(reverse('adminapp:category_update', args=[edit_category.pk]))
-    else:
-        edit_form = ProductCategoryEditForm(instance=edit_category)
+    def form_valid(self, form):
+        if 'discount' in form.cleaned_data:
+            discount = form.cleaned_data['discount']
+            if discount:
+                self.object.product_set.update(price=F('price') * (1 - discount / 100))
+                db_profile_by_type(self.__class__, 'UPDATE', connection.queries)
+        return super().form_valid(form)
 
-    context = {
-        'title': title,
-        'update_form': edit_form
-    }
 
-    return render(request, 'adminapp/category_update.html', context)
+# @user_passes_test(lambda u: u.is_superuser)
+# def category_update(request, pk):
+#     title = 'категории/редактирование'
+#     edit_category = get_object_or_404(ProductCategory, pk=pk)
+#
+#     if request.method == 'POST':
+#         edit_form = ProductCategoryEditForm(request.POST, request.FILES, instance=edit_category)
+#
+#         if edit_form.is_valid():
+#             edit_form.save()
+#             return HttpResponseRedirect(reverse('adminapp:category_update', args=[edit_category.pk]))
+#     else:
+#         edit_form = ProductCategoryEditForm(instance=edit_category)
+#
+#     context = {
+#         'title': title,
+#         'update_form': edit_form
+#     }
+#
+#     return render(request, 'adminapp/category_update.html', context)
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -349,3 +374,46 @@ class ProductDeleteView(AccessMixin, DeleteView):
         self.object.save()
 
         return HttpResponseRedirect(reverse('adminapp:product_list', args=[self.object.category_id]))
+
+
+def db_profile_by_type(prefix, type, queries):
+    update_queries = list(filter(lambda x: type in x['sql'], queries))
+    print(f'db_profile {type} for {prefix}:')
+    [print(query['sql']) for query in update_queries]
+
+
+@receiver(pre_save, sender=ProductCategory)
+def product_is_active_update_productcategory_save(sender, instance, **kwargs):
+    if instance.pk:
+        if instance.is_active:
+            instance.product_set.update(is_active=True)
+        else:
+            instance.product_set.update(is_active=False)
+
+        db_profile_by_type(sender, 'UPDATE', connection.queries)
+
+
+def report_update(order):
+    _order_items = order.get_order_items()
+    for _item in _order_items:
+        _report_item = Report.objects.filter(product=_item.product).first()
+        if _report_item:
+            _report_item.quantity = F('quantity') + 1
+        else:
+            _report_item = Report(product=_item.product)
+            _report_item.quantity += 1
+
+        _report_item.save()
+
+
+class ReportsListView(ListView):
+    model = Report
+    template_name = 'adminapp/reports.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+        context_data['title'] = 'админка/отчет по продажам'
+        return context_data
+
+    def get_queryset(self):
+        return Report.objects.all().select_related()

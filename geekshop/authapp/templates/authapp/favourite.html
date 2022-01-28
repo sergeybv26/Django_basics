@@ -1,0 +1,43 @@
+{% extends 'authapp/base.html' %}
+{% load static %}
+{% load my_tags %}
+
+{% block content %}
+<div class="h2 text-center head">
+    Избранные товары
+</div>
+<div class="products_list_fav">
+    {% for object in object_list %}
+        {% if object.product.is_active %}
+    <div class="product_record">
+        <img
+                src="{{ object.product.image|media_for_products }}"
+                alt="{{ object.product.name }}">
+        <div class="product_name">
+            {{ object.product.name|title }}
+        </div>
+
+        </div>
+        <div class="summary">
+            <b>цена</b>
+            <p>{{ object.product.price }} руб</p>
+        </div>
+        <div class="product_desc">
+            {{ object.product.short_desc|title }}
+        </div>
+
+    </div>
+        {% endif %}
+    <button class="btn btn-round form-control last">
+        <a href="{% url 'authapp:favourite_delete' object.pk %}" class="">
+            удалить из избранного
+        </a>
+    </button>
+    {% endfor%}
+</div>
+<button class="btn btn-round form-control last">
+        <a href="{% url 'index' %}" class="">
+            на главную
+        </a>
+</button>
+{% endblock %}

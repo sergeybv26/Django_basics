@@ -1,3 +1,5 @@
+from django.db import connection
+from django.db.models import F
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -5,16 +7,18 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from mainapp.models import Product
 from basketapp.models import Basket
+from adminapp.views import db_profile_by_type
+from mainapp.views import get_usd
 
 
 @login_required
 def basket(request):
     title = 'корзина'
-    basket_items = Basket.objects.filter(user=request.user)
+    basket_items = Basket.objects.filter(user=request.user).select_related('product')
 
     context = {
         'title': title,
-        'basket_items': basket_items
+        'basket_items': basket_items,
     }
 
     return render(request, 'basketapp/basket.html', context)
@@ -26,13 +30,17 @@ def basket_add(request, pk):
         return HttpResponseRedirect(reverse('products:product', args=[pk]))
     product = get_object_or_404(Product, pk=pk)
 
-    basket = Basket.objects.filter(user=request.user, product=product).first()
+    basket_item = Basket.objects.filter(user=request.user, product=product).first()
 
-    if not basket:
-        basket = Basket(user=request.user, product=product)
+    if basket_item:
+        basket_item.quantity += 1
+    else:
+        basket_item = Basket(user=request.user, product=product)
+        basket_item.quantity += 1
 
-    basket.quantity += 1
-    basket.save()
+    basket_item.save()
+
+    db_profile_by_type(Basket, 'UPDATE', connection.queries)
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
@@ -57,7 +65,7 @@ def edit(request, pk, quantity):
         else:
             new_basket_item.delete()
 
-        basket_items = Basket.objects.filter(user=request.user)
+        basket_items = Basket.objects.filter(user=request.user).select_related('product')
 
         context = {
             'basket_items': basket_items,
