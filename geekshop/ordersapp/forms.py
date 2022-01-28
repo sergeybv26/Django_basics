@@ -17,7 +17,8 @@ class OrderForm(forms.ModelForm):
 
 
 class OrderItemForm(forms.ModelForm):
-    price = forms.CharField(label='цена', required=False)
+    price = forms.CharField(label='цена в руб.', required=False)
+    price_usd = forms.CharField(label='цена в USD', required=False)
 
     class Meta:
         model = OrderItem

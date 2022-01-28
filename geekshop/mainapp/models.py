@@ -31,3 +31,8 @@ class Product(models.Model):
     @staticmethod
     def get_items():
         return Product.objects.filter(is_active=True).order_by('category', 'name')
+
+
+class ExchangeRate(models.Model):
+    rate = models.DecimalField(decimal_places=2, max_digits=5, default=0, verbose_name='курс валюты')
+    rate_update_at = models.DateField(auto_now=True, verbose_name='обновлен')

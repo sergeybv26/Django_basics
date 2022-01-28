@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 
+from authapp.models import ShopUser
 from mainapp.models import Product
 
 #
@@ -43,6 +44,16 @@ class Order(models.Model):
     def __str__(self):
         return 'Текущий заказ:'.format(self.id)
 
+    def get_summary(self):
+        _items = self.orderitems.select_related()
+        return {
+            'get_total_cost': sum(list(map(lambda x: x.product_cost, _items))),
+            'get_total_quantity': sum(list(map(lambda x: x.quantity, _items)))
+        }
+
+    def get_order_items(self):
+        return self.orderitems.select_related()
+
     def get_total_quantity(self):
         _items = self.orderitems.select_related()
         return sum(list(map(lambda x: x.quantity, _items)))
@@ -73,3 +84,10 @@ class OrderItem(models.Model):
     @staticmethod
     def get_item(pk):
         return OrderItem.objects.get(pk=pk)
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(ShopUser, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    ik_am = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма платежа')
+    ik_desc = models.CharField(max_length=128, verbose_name='Описание платежа')

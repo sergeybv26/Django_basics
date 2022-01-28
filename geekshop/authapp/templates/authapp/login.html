@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block content %}
+    <div class="h2 text-center head">
+                Вход в систему
+    </div>
     <form class="form-horizontal" action="{% url 'auth:login' %}" method="post">
         {% csrf_token %}
         {% if next %}

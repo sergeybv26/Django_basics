@@ -93,18 +93,23 @@ AUTH_USER_MODEL = 'authapp.ShopUser'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+ENV_TYPE = os.getenv('ENV_TYPE')
 
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'geekshop',
-        'USER': 'postgres',
+if ENV_TYPE == 'local':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'geekshop',
+            'USER': 'postgres',
+        }
+    }
 
 
 # Password validation
@@ -145,7 +150,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-ENV_TYPE = os.getenv('ENV_TYPE')
 
 if ENV_TYPE == 'local':
     STATICFILES_DIRS = (
@@ -227,3 +231,21 @@ if DEBUG:
         'debug_toolbar.panels.profiling.ProfilingPanel',
         'template_profiler_panel.panels.template.TemplateProfilerPanel',
     ]
+
+if os.name == 'posix':
+    CACHE_MIDDLEWARE_ALIAS = 'default'
+    CACHE_MIDDLEWARE_SECONDS = 120
+    CACHE_MIDDLEWARE_KEY_PREFIX = 'geekshop'
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': '127.0.0.1:11211',
+        }
+    }
+
+LOW_CACHE = (os.getenv('LOW_CACHE', 'False') == 'True')
+
+UPLOAD_TOKEN = 'e5e0321f-8b43-41ac-b31f-62db701b3519'
+
+INTERCASSA_ID = '61bdd4bfedb6971dd62ca2a6'

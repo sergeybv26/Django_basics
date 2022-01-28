@@ -4,6 +4,9 @@
 
 
 {% block content %}
+    <div class="h2 text-center head">
+                Редактирование профиля
+    </div>
     <form class="form-horizontal" action="{% url 'auth:edit' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ edit_form.as_p }}
