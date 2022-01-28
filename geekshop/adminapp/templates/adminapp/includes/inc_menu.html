@@ -23,4 +23,12 @@
             {% endif %}
         </a>
     </li>
+    <li>
+        <a href="{% url 'adminapp:reports' %}"
+           class="{% if 'reports' in request.resolver_match.url_name %}
+                active
+              {% endif %}">
+            отчеты
+        </a>
+    </li>
 </ul>

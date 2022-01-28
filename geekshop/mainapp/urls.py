@@ -12,4 +12,6 @@ urlpatterns = [
     # path('category/<int:pk>/page/<int:page>/ajax/', mainapp.products_ajax),
     # path('category/<int:pk>/page/<int:page>/', mainapp.products, name='page'),
     path('product/<int:pk>/', mainapp.product, name='product'),
+    path('product/ajax/<int:pk>/', mainapp.add_to_favourite, name='favourite_add'),
+    path('api/load/', mainapp.product_upload),
 ]

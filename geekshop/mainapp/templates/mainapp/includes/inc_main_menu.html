@@ -1,5 +1,7 @@
 <a href="{% url 'index' %}" class="logo"></a>
 <ul class="menu">
+    <li><p>Курс доллара: {{ exchange_rate }} руб.</p>
+    </li>
     <li><a href="{% url 'index' %}"
            {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>домой
         </a>
@@ -27,6 +29,9 @@
                 </li>
                 <li>
                     <a href="{% url 'ordersapp:list' %}">заказы</a>
+                </li>
+                <li>
+                    <a href="{% url 'auth:favourite' %}">избранное</a>
                 </li>
             </ul>
         </div>
